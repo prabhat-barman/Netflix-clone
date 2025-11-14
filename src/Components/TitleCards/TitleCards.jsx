@@ -68,12 +68,34 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
             apiData.map((card) => (
               <Link to={`/player/${card.id}`} className="card" key={card.id}>
                 <img
-                  src={
-                    card.backdrop_path
-                      ? `https://image.tmdb.org/t/p/w500${card.backdrop_path}`
-                      : "https://via.placeholder.com/500x281?text=No+Image"
-                  }
+                  loading="lazy"
+                  src={(() => {
+                    const proxy = import.meta.env.VITE_IMAGE_PROXY;
+                    if (!card.backdrop_path) return '/fallback-poster.svg';
+                    const tmdbPath = `/w500${card.backdrop_path}`;
+                    return proxy ? `${proxy.replace(/\/$/, '')}/img${tmdbPath}` : `https://image.tmdb.org/t/p${tmdbPath}`;
+                  })()}
                   alt={card.original_title || "Movie"}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    const proxy = import.meta.env.VITE_IMAGE_PROXY;
+                    // If we haven't tried the smaller size yet, try w300
+                    if (!img.dataset.triedSmall && img.src.includes('/w500')) {
+                      img.dataset.triedSmall = 'true';
+                      img.src = img.src.replace('/w500', '/w300');
+                      return;
+                    }
+                    // If we're using a proxy and it failed, fallback to direct TMDB once
+                    if (!img.dataset.triedDirect && proxy) {
+                      img.dataset.triedDirect = 'true';
+                      const direct = `https://image.tmdb.org/t/p${img.src.replace(/.*\/img/, '')}`;
+                      img.src = direct;
+                      return;
+                    }
+                    // Final fallback to local SVG placeholder
+                    img.onerror = null;
+                    img.src = '/fallback-poster.svg';
+                  }}
                 />
                 <p>{card.original_title}</p>
               </Link>
