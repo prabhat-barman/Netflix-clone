@@ -1,0 +1,264 @@
+
+
+
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(70%);
+  transition: transform 0.6s ease, filter 0.6s ease;
+}
+
+.hero:hover .banner-img {
+  transform: scale(1.08);
+  filter: brightness(75%);
+}
+
+
+.hero-caption {
+  position: absolute;
+  bottom: 12%;
+  left: 6%;
+  width: 70%;
+  max-width: 700px;
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  z-index: 10;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+}
+
+.hero-caption b {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 15px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.hero-btns .btn {
+  border: none;
+  outline: none;
+  padding: 12px 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero-btns .btn img {
+  width: 22px;
+}
+
+.hero-btns .btn {
+  background-color: #fff;
+  color: #000;
+}
+
+
+.hero-btns .btn.dark-btn {
+  color:black;
+  background: rgba(109, 109, 110, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+
+.hero-btns .btn:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.hero-btns .btn.dark-btn:hover {
+  background-color: rgba(109, 109, 110, 0.5);
+  transform: translateY(-2px) scale(1.05);
+}
+
+
+.featured-cards {
+  position: relative;
+  margin-top: -6px; 
+  background: #000;
+  padding: 40px 6% 60px;
+}
+
+.featured-cards h2 {
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #e50914;
+  padding-left: 10px;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+
+
+.card-list {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  cursor: grab;
+  scrollbar-width: none;
+}
+
+.card-list::-webkit-scrollbar {
+  display: none;
+}
+
+
+.card {
+  flex: 0 0 auto;
+  width: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  position: relative;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: transform 0.35s ease, filter 0.35s ease;
+  cursor: pointer;
+}
+
+.card p {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 1rem;
+  text-transform: capitalize;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+
+.card:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+}
+
+.card:hover img {
+  transform: scale(1.12);
+  filter: brightness(85%);
+}
+
+.card p:hover {
+  color: #e50914;
+}
+
+
+
+
+@media (min-width: 1440px) {
+  .hero-caption {
+    max-width: 800px;
+    font-size: 1.2rem;
+  }
+}
+
+
+@media (max-width: 1439px) {
+  .hero {
+    height: 90vh;
+  }
+  .card {
+    width: 200px;
+  }
+}
+
+
+@media (max-width: 1024px) {
+  .hero {
+    height: 80vh;
+  }
+  .hero-caption {
+    font-size: 1rem;
+    width: 80%;
+  }
+  .card {
+    width: 180px;
+  }
+  .card img {
+    height: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 70vh;
+  }
+  .hero-caption {
+    bottom: 10%;
+    font-size: 0.9rem;
+  }
+  .hero-btns .btn {
+    padding: 10px 22px;
+    font-size: 13px;
+  }
+  .featured-cards h2 {
+    font-size: 1.5rem;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .hero {
+    height: 60vh;
+  }
+  .hero-caption {
+    width: 90%;
+    bottom: 8%;
+    font-size: 0.85rem;
+  }
+  .hero-btns .btn {
+    font-size: 11px;
+    padding: 8px 16px;
+  }
+  .card {
+    width: 150px;
+  }
+  .card img {
+    height: 100px;
+  }
+}
+
+@media (max-width: 400px) {
+  .hero {
+    height: 55vh;
+  }
+  .hero-caption {
+    font-size: 0.8rem;
+  }
+  .hero-btns .btn {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+}
