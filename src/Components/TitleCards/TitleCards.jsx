@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./TitleCards.css";
-import jsonFile from './jsonFile.json'
 
 const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) => {
   const [apiData, setApiData] = useState([]);
@@ -14,48 +13,60 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
     }
   }, []);
 
+  const buildTMDB = useCallback((size, path) =>
+    `https://image.tmdb.org/t/p/${size}${path}`,
+    []
+  );
+
+  const buildProxy = useCallback((size, path) => {
+    const proxy = import.meta.env.VITE_IMAGE_PROXY;
+    return proxy ? `${proxy.replace(/\/$/, '')}/img/${size}${path}` : null;
+  }, []);
+
+  const INLINE_FALLBACK = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzIzMjMyMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjZjdmN2Y3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
+
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchMovies = async () => {
       try {
+        const token = import.meta.env.VITE_TMDB_TOKEN;
         const options = {
           method: "GET",
           headers: {
             accept: "application/json",
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0OTk3NzZhYzc2ZDZjNWUyZGRkOTdkZjYzNTI2YzkxZSIsIm5iZiI6MTc2MjQxMTk2Ny45NzUwMDAxLCJzdWIiOiI2OTBjNDViZjg0Y2EyYTAzYzNkNzM4MDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.iTip_MpiJ052f6gvzyhyhhFUV4OKacHPA6QyF5XzZQo"
-          }
+            Authorization: token ? `Bearer ${token}` : undefined
+          },
+          signal: controller.signal
         };
 
         const url = `https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1&region=US`;
-
-        console.log("Fetching movies from URL:", url);
-
         const response = await fetch(url, options);
-        console.log("Response status:", response.status);
+
+        if (!response.ok) {
+          console.warn("TMDB fetch failed:", response.status);
+          setApiData([]);
+          return;
+        }
 
         const data = await response.json();
-        console.log("Response data:", data||jsonFile);
-
-        if (data.results && data.results.length > 0) {
-          setApiData(data.results);
-        } else {
-          console.warn("No results found in API response:", data);
-        }
+        setApiData(data.results?.length > 0 ? data.results : []);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        if (err.name !== "AbortError") {
+          console.error("Fetch error:", err);
+        }
+        setApiData([]);
       }
     };
 
     fetchMovies();
 
-    const cardsElement = cardsRef.current;
-    if (cardsElement) {
-      cardsElement.addEventListener("wheel", handleWheel);
-    }
+    const el = cardsRef.current;
+    if (el) el.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      if (cardsElement) {
-        cardsElement.removeEventListener("wheel", handleWheel);
-      }
+      controller.abort();
+      if (el) el.removeEventListener("wheel", handleWheel);
     };
   }, [category, handleWheel]);
 
@@ -65,41 +76,44 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
         <h2>{title}</h2>
         <div className="card-list" ref={cardsRef}>
           {apiData.length > 0 ? (
-            apiData.map((card) => (
-              <Link to={`/player/${card.id}`} className="card" key={card.id}>
-                <img
-                  loading="lazy"
-                  src={(() => {
-                    const proxy = import.meta.env.VITE_IMAGE_PROXY;
-                    if (!card.backdrop_path) return '/fallback-poster.svg';
-                    const tmdbPath = `/w500${card.backdrop_path}`;
-                    return proxy ? `${proxy.replace(/\/$/, '')}/img${tmdbPath}` : `https://image.tmdb.org/t/p${tmdbPath}`;
-                  })()}
-                  alt={card.original_title || "Movie"}
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    const proxy = import.meta.env.VITE_IMAGE_PROXY;
-                    // If we haven't tried the smaller size yet, try w300
-                    if (!img.dataset.triedSmall && img.src.includes('/w500')) {
-                      img.dataset.triedSmall = 'true';
-                      img.src = img.src.replace('/w500', '/w300');
-                      return;
-                    }
-                    // If we're using a proxy and it failed, fallback to direct TMDB once
-                    if (!img.dataset.triedDirect && proxy) {
-                      img.dataset.triedDirect = 'true';
-                      const direct = `https://image.tmdb.org/t/p${img.src.replace(/.*\/img/, '')}`;
-                      img.src = direct;
-                      return;
-                    }
-                    // Final fallback to local SVG placeholder
-                    img.onerror = null;
-                    img.src = '/fallback-poster.svg';
-                  }}
-                />
-                <p>{card.original_title}</p>
-              </Link>
-            ))
+            apiData.map((card) => {
+              const proxy = import.meta.env.VITE_IMAGE_PROXY;
+              const path = card.backdrop_path || card.poster_path;
+
+              return (
+                <Link to={`/player/${card.id}`} className="card" key={card.id}>
+                  <img
+                    loading="lazy"
+                    src={!path ? INLINE_FALLBACK : proxy ? buildProxy("w500", path) : buildTMDB("w500", path)}
+                    alt={card.original_title || "Movie"}
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.dataset.fallbackApplied === "true") {
+                        img.onerror = null;
+                        return;
+                      }
+
+                      if (!img.dataset.small && img.src.includes("/w500")) {
+                        img.dataset.small = "1";
+                        img.src = proxy ? buildProxy("w300", path) : buildTMDB("w300", path);
+                        return;
+                      }
+
+                      if (proxy && !img.dataset.direct && img.src.includes("/img")) {
+                        img.dataset.direct = "1";
+                        img.src = buildTMDB("w300", path);
+                        return;
+                      }
+
+                      img.dataset.fallbackApplied = "true";
+                      img.onerror = null;
+                      img.src = INLINE_FALLBACK;
+                    }}
+                  />
+                  <p>{card.original_title || card.title}</p>
+                </Link>
+              );
+            })
           ) : (
             <p>Loading movies...</p>
           )}
