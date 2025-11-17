@@ -6,6 +6,7 @@ import Navbar from "./Components/Navbar/Navbar";
 import Home from "./Pages/Home/Home";
 import Login from "./Pages/Login/Login";
 import Player from "./Pages/Player/Player";
+import Search from "./Pages/Search/Search";
 
 const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
     <>
       {isAuthenticated && <Navbar onLogout={handleLogout} />}
       <Routes>
+        <Route path="/search" element={<Search />} />
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route
           path="/"

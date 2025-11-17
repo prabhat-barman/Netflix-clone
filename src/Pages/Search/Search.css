@@ -1,0 +1,30 @@
+.search-page { padding: 100px 24px 40px; color:#fff; }
+.search-page h2 { margin: 0 0 12px 0; font-size:22px; }
+.error { color:#ff8b8b; }
+.search-grid {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+.search-card { display:block; background:#0f0f0f; border-radius:8px; overflow:hidden; text-decoration:none; color:inherit; }
+.search-card img { width:100%; height:240px; object-fit:cover; background:#111; display:block; }
+.search-card .meta { padding:10px; }
+.search-card h3 { margin:0 0 6px 0; font-size:14px; color:#fff; }
+.search-card .release { margin:0; color:#bbb; font-size:12px; }
+.back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background: #e50914;
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+
+.back-btn:hover {
+  background: #f6121d;
+}

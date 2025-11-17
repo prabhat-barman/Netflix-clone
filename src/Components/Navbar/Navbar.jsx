@@ -1,8 +1,5 @@
-
-
-
-
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import "../../Pages/Login/Login.css";
 
@@ -11,11 +8,12 @@ import search from "../../assets/searchiconn.png";
 import bell from "../../assets/BellIcon.png";
 import player from "../../assets/R.png";
 
- import { logout } from "../../Firebase";
-
+import { logout } from "../../Firebase";
 
 const Navbar = () => {
   const navRef = useRef(null);
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,16 +25,21 @@ const Navbar = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-
-   
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
+  const submitSearch = (e) => {
+    e.preventDefault();
+    const term = (q || "").trim();
+    if (!term) return;
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+    setQ("");
+  };
+
   return (
     <div ref={navRef} className="navbar">
-
       <div className="navbar-left">
         <img className="logo" src={logo} alt="Netflix Logo" />
         <ul>
@@ -50,7 +53,19 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-right">
-        <img src={search} alt="Search Icon" className="icon" />
+        <form className="nav-search-form" onSubmit={submitSearch} role="search">
+          <input
+            className="nav-search-input"
+            aria-label="Search movies"
+            placeholder="Search movies..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <button type="submit" className="nav-search-button" aria-label="Search">
+            <img src={search} alt="Search Icon" className="icon" />
+          </button>
+        </form>
+
         <p><b>Children</b></p>
         <img src={bell} alt="Notification Icon" className="icons" />
 
@@ -58,7 +73,7 @@ const Navbar = () => {
           <img src={player} alt="User Profile" className="profile" />
 
           <div className="dropdown">
-            <p onClick={()=>{logout()}}>Sign Out </p>
+            <p onClick={() => { logout(); navigate("/login"); }}>Sign Out</p>
           </div>
         </div>
       </div>

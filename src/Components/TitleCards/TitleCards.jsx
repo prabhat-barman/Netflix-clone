@@ -41,34 +41,51 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
         };
 
         const url = `https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1&region=US`;
+        console.log("Fetching movies from:", url);
+
         const response = await fetch(url, options);
+        console.log("Response status:", response.status);
 
         if (!response.ok) {
-          console.warn("TMDB fetch failed:", response.status);
+          console.warn("TMDB API response not OK:", response.status);
           setApiData([]);
           return;
         }
 
         const data = await response.json();
-        setApiData(data.results?.length > 0 ? data.results : []);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Fetch error:", err);
+        console.log("Fetched movies:", data.results?.length);
+
+        if (data.results && data.results.length > 0) {
+          setApiData(data.results);
+        } else {
+          console.warn("No results in API response");
+          setApiData([]);
         }
-        setApiData([]);
+      } catch (err) {
+        if (err.name === "AbortError") {
+          console.log("Fetch aborted");
+        } else {
+          console.error("Error fetching movies:", err);
+          setApiData([]);
+        }
       }
     };
 
     fetchMovies();
 
     const el = cardsRef.current;
-    if (el) el.addEventListener("wheel", handleWheel, { passive: false });
+    if (el) {
+      el.addEventListener("wheel", handleWheel, { passive: false });
+    }
 
     return () => {
       controller.abort();
-      if (el) el.removeEventListener("wheel", handleWheel);
+      if (el) {
+        el.removeEventListener("wheel", handleWheel);
+      }
     };
   }, [category, handleWheel]);
+  
 
   return (
     <div className="background-container">
@@ -84,27 +101,41 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
                 <Link to={`/player/${card.id}`} className="card" key={card.id}>
                   <img
                     loading="lazy"
-                    src={!path ? INLINE_FALLBACK : proxy ? buildProxy("w500", path) : buildTMDB("w500", path)}
+                    src={
+                      !path
+                        ? INLINE_FALLBACK
+                        : proxy
+                        ? buildProxy("w500", path)
+                        : buildTMDB("w500", path)
+                    }
                     alt={card.original_title || "Movie"}
                     onError={(e) => {
                       const img = e.currentTarget;
+                      const proxy = import.meta.env.VITE_IMAGE_PROXY;
+
+                      // If fallback already applied, stop
                       if (img.dataset.fallbackApplied === "true") {
                         img.onerror = null;
                         return;
                       }
 
+                      // Try smaller size
                       if (!img.dataset.small && img.src.includes("/w500")) {
                         img.dataset.small = "1";
-                        img.src = proxy ? buildProxy("w300", path) : buildTMDB("w300", path);
+                        img.src = proxy
+                          ? buildProxy("w300", path)
+                          : buildTMDB("w300", path);
                         return;
                       }
 
+                      // If proxy, try direct TMDB
                       if (proxy && !img.dataset.direct && img.src.includes("/img")) {
                         img.dataset.direct = "1";
                         img.src = buildTMDB("w300", path);
                         return;
                       }
 
+                      // Final fallback
                       img.dataset.fallbackApplied = "true";
                       img.onerror = null;
                       img.src = INLINE_FALLBACK;
