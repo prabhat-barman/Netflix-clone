@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./TitleCards.css";
 
-const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) => {
+const TitleCards = ({ title = "Popular on Netflix", category = "now_playing", filterQuery = "" }) => {
   const [apiData, setApiData] = useState([]);
   const cardsRef = useRef(null);
 
@@ -25,121 +25,62 @@ const TitleCards = ({ title = "Popular on Netflix", category = "now_playing" }) 
 
   const INLINE_FALLBACK = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzIzMjMyMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjZjdmN2Y3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
 
+  const MOCK_CARDS_DATA = [
+    { id: 101, original_title: "Stranger Things", poster_path: "https://placehold.co/500x750/222/FFF/png?text=Stranger+Things" },
+    { id: 102, original_title: "The Witcher", poster_path: "https://placehold.co/500x750/222/FFF/png?text=The+Witcher" },
+    { id: 103, original_title: "Spider-Man: No Way Home", poster_path: "https://placehold.co/500x750/800/FFF/png?text=Spider-Man" },
+    { id: 104, original_title: "Money Heist", poster_path: "https://placehold.co/500x750/900/FFF/png?text=Money+Heist" },
+    { id: 105, original_title: "Squid Game", poster_path: "https://placehold.co/500x750/066/FFF/png?text=Squid+Game" },
+    { id: 106, original_title: "Lucifer", poster_path: "https://placehold.co/500x750/600/FFF/png?text=Lucifer" },
+    { id: 107, original_title: "Dark", poster_path: "https://placehold.co/500x750/333/FFF/png?text=Dark" },
+    { id: 108, original_title: "Breaking Bad", poster_path: "https://placehold.co/500x750/060/FFF/png?text=Breaking+Bad" },
+    { id: 109, original_title: "Peaky Blinders", poster_path: "https://placehold.co/500x750/444/FFF/png?text=Peaky+Blinders" },
+    { id: 110, original_title: "Narcos", poster_path: "https://placehold.co/500x750/840/FFF/png?text=Narcos" },
+    { id: 111, original_title: "Wednesday", poster_path: "https://placehold.co/500x750/000/FFF/png?text=Wednesday" },
+    { id: 112, original_title: "Black Mirror", poster_path: "https://placehold.co/500x750/111/FFF/png?text=Black+Mirror" },
+    { id: 113, original_title: "The Crown", poster_path: "https://placehold.co/500x750/D4AF37/FFF/png?text=The+Crown" },
+    { id: 114, original_title: "Ozark", poster_path: "https://placehold.co/500x750/004/FFF/png?text=Ozark" },
+    { id: 115, original_title: "Mindhunter", poster_path: "https://placehold.co/500x750/300/FFF/png?text=Mindhunter" }
+  ];
+
   useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchMovies = async () => {
-      try {
-        const token = import.meta.env.VITE_TMDB_TOKEN;
-        const options = {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            Authorization: token ? `Bearer ${token}` : undefined
-          },
-          signal: controller.signal
-        };
-
-        const url = `https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1&region=US`;
-        console.log("Fetching movies from:", url);
-
-        const response = await fetch(url, options);
-        console.log("Response status:", response.status);
-
-        if (!response.ok) {
-          console.warn("TMDB API response not OK:", response.status);
-          setApiData([]);
-          return;
-        }
-
-        const data = await response.json();
-        console.log("Fetched movies:", data.results?.length);
-
-        if (data.results && data.results.length > 0) {
-          setApiData(data.results);
-        } else {
-          console.warn("No results in API response");
-          setApiData([]);
-        }
-      } catch (err) {
-        if (err.name === "AbortError") {
-          console.log("Fetch aborted");
-        } else {
-          console.error("Error fetching movies:", err);
-          setApiData([]);
-        }
-      }
-    };
-
-    fetchMovies();
+    // Pure Mock Mode: Shuffle data slightly based on category/title to make sections look different
+    const shuffled = [...MOCK_CARDS_DATA].sort(() => 0.5 - Math.random());
+    setApiData(shuffled);
 
     const el = cardsRef.current;
     if (el) {
       el.addEventListener("wheel", handleWheel, { passive: false });
     }
-
     return () => {
-      controller.abort();
       if (el) {
         el.removeEventListener("wheel", handleWheel);
       }
     };
   }, [category, handleWheel]);
-  
+
+  const filteredData = apiData.filter(card => {
+    if (!filterQuery) return true;
+    const title = card.original_title || card.title || "";
+    return title.toLowerCase().includes(filterQuery.toLowerCase());
+  });
 
   return (
     <div className="background-container">
       <div className="titlecards">
         <h2>{title}</h2>
         <div className="card-list" ref={cardsRef}>
-          {apiData.length > 0 ? (
-            apiData.map((card) => {
-              const proxy = import.meta.env.VITE_IMAGE_PROXY;
-              const path = card.backdrop_path || card.poster_path;
+          {filteredData.length > 0 ? (
+            filteredData.map((card) => {
+              // Direct mock usage
+              const imgSrc = card.poster_path;
 
               return (
                 <Link to={`/player/${card.id}`} className="card" key={card.id}>
                   <img
                     loading="lazy"
-                    src={
-                      !path
-                        ? INLINE_FALLBACK
-                        : proxy
-                        ? buildProxy("w500", path)
-                        : buildTMDB("w500", path)
-                    }
+                    src={imgSrc}
                     alt={card.original_title || "Movie"}
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      const proxy = import.meta.env.VITE_IMAGE_PROXY;
-
-                      // If fallback already applied, stop
-                      if (img.dataset.fallbackApplied === "true") {
-                        img.onerror = null;
-                        return;
-                      }
-
-                      // Try smaller size
-                      if (!img.dataset.small && img.src.includes("/w500")) {
-                        img.dataset.small = "1";
-                        img.src = proxy
-                          ? buildProxy("w300", path)
-                          : buildTMDB("w300", path);
-                        return;
-                      }
-
-                      // If proxy, try direct TMDB
-                      if (proxy && !img.dataset.direct && img.src.includes("/img")) {
-                        img.dataset.direct = "1";
-                        img.src = buildTMDB("w300", path);
-                        return;
-                      }
-
-                      // Final fallback
-                      img.dataset.fallbackApplied = "true";
-                      img.onerror = null;
-                      img.src = INLINE_FALLBACK;
-                    }}
                   />
                   <p>{card.original_title || card.title}</p>
                 </Link>

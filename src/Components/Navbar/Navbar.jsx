@@ -10,7 +10,7 @@ import player from "../../assets/R.png";
 
 import { logout } from "../../Firebase";
 
-const Navbar = () => {
+const Navbar = ({ onSearch }) => {
   const navRef = useRef(null);
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -20,7 +20,7 @@ const Navbar = () => {
       if (window.scrollY >= 80) {
         navRef.current.classList.add("nav-dark");
       } else {
-        // navRef.current.classList.remove("nav-dark");
+        navRef.current.classList.remove("nav-dark");
       }
     };
 
@@ -30,12 +30,21 @@ const Navbar = () => {
     };
   }, []);
 
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
+
   const submitSearch = (e) => {
     e.preventDefault();
-    const term = (q || "").trim();
-    if (!term) return;
-    navigate(`/search?q=${encodeURIComponent(term)}`);
-    setQ("");
+    if (!onSearch) {
+      const term = (q || "").trim();
+      if (!term) return;
+      navigate(`/search?q=${encodeURIComponent(term)}`);
+    }
   };
 
   return (
@@ -53,18 +62,20 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-right">
-        <form className="nav-search-form" onSubmit={submitSearch} role="search">
-          <input
-            className="nav-search-input"
-            aria-label="Search movies"
-            placeholder="Search movies..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <button type="submit" className="nav-search-button" aria-label="Search">
-            <img src={search} alt="Search Icon" className="icon" />
-          </button>
-        </form>
+        <div className="search-container">
+          <form className="nav-search-form" onSubmit={submitSearch} role="search">
+            <input
+              className="nav-search-input"
+              aria-label="Search movies"
+              placeholder="Search movies..."
+              value={q}
+              onChange={handleInputChange}
+            />
+            <button type="submit" className="nav-search-button" aria-label="Search">
+              <img src={search} alt="Search Icon" className="icon" />
+            </button>
+          </form>
+        </div>
 
         <p><b>Children</b></p>
         <img src={bell} alt="Notification Icon" className="icons" />

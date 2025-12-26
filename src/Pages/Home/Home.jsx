@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Home.css";
 import Navbar from "../../Components/Navbar/Navbar";
 import net_image from "../../assets/3d_image.jpg";
@@ -8,9 +8,11 @@ import info_btn from "../../assets/information-button.png";
 import TitleCards from "../../Components/TitleCards/TitleCards";
 
 const Home = () => {
+  const [filterQuery, setFilterQuery] = useState("");
+
   return (
     <div className="home">
-      <Navbar />
+      <Navbar onSearch={setFilterQuery} />
 
       <div className="hero">
         <img src={net_image} alt="Background" className="banner-img" />
@@ -36,11 +38,11 @@ const Home = () => {
       </div>
 
       <div className="more-cards">
-        <TitleCards />
-        <TitleCards title={"blockbuster movies"} category={"top_rated"} />
-        <TitleCards title={"only on netflix"} category={"popular"} />
-        <TitleCards title={"upcoming"} category={"upcoming"} />
-        <TitleCards title={"top pics for you"} category={"now_playing"} />
+        <TitleCards filterQuery={filterQuery} />
+        <TitleCards title={"blockbuster movies"} category={"top_rated"} filterQuery={filterQuery} />
+        <TitleCards title={"only on netflix"} category={"popular"} filterQuery={filterQuery} />
+        <TitleCards title={"upcoming"} category={"upcoming"} filterQuery={filterQuery} />
+        <TitleCards title={"top pics for you"} category={"now_playing"} filterQuery={filterQuery} />
       </div>
     </div>
   );
